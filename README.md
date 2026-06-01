@@ -53,6 +53,8 @@ Hospital-Management-System/
 │       ├── BillPanel.java
 │       ├── DoctorPanel.java
 │       ├── FollowUpPanel.java
+|       ├── HospitalDashboard.java
+|       ├── LoginPanel.java
 │       ├── MedicinePanel.java
 │       ├── PatientPanel.java
 │       └── PrescriptionPanel.java
@@ -92,6 +94,11 @@ Hospital-Management-System/
 2. **Initialize the Data Folder**: Ensure your working directory contains the necessary `.txt` files (`doctor.txt`, `patient.txt`, `appointment.txt`, etc.).
 3. **Configure Source**: Open the project in your IDE and point your project SDK to the installed JDK.
 4. **Run Application**: Execute the entry point class (e.g., `Main.java`) to launch the GUI.
+
+### Login Details:
+
+- Username: `admin`
+- Password: `1234`
 
 ---
 
