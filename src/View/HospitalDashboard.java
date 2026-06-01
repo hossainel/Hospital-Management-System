@@ -1,13 +1,11 @@
 package View;
 
 import javax.swing.*;
+import java.awt.*;
 
-public class HospitalDashboard extends JFrame {
+public class HospitalDashboard extends JPanel {
     public HospitalDashboard() {
-        setTitle("Hospital Management System - Consolidated Administration Console");
-        setSize(1100, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -20,6 +18,6 @@ public class HospitalDashboard extends JFrame {
         tabbedPane.addTab("Medicine", new MedicinePanel());
         tabbedPane.addTab("Prescriptions", new PrescriptionPanel());
 
-        add(tabbedPane);
+        add(tabbedPane, BorderLayout.CENTER);
     }
 }

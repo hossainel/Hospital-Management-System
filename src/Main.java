@@ -1,29 +1,44 @@
 import Database.DatabaseEngine;
-import View.HospitalDashboard;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import View.*;
+import javax.swing.*;
+import java.awt.*;
 
-public class Main {
+public class Main extends JFrame {
+    private final CardLayout cardLayout = new CardLayout();
+    private final JPanel mainContainer = new JPanel(cardLayout);
+
+    public Main() {
+        // Step 1: Window Setup
+        setTitle("Hospital Management System");
+        setSize(1000, 700);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null); // Center on screen
+
+        // Step 2: Initialize UI Components
+        HospitalDashboard dashboard = new HospitalDashboard();
+        LoginPanel loginPanel = new LoginPanel(() -> cardLayout.show(mainContainer, "DASHBOARD"));
+
+        // Step 3: Setup Layout Flow
+        mainContainer.add(loginPanel, "LOGIN");
+        mainContainer.add(dashboard, "DASHBOARD");
+        add(mainContainer);
+        cardLayout.show(mainContainer, "LOGIN");
+    }
+
     public static void main(String[] args) {
-        // Step 1: Execute verification scans on startup
+        // Step 4: Verification Scans
         System.out.println("Validating local storage configurations...");
-        DatabaseEngine.checkAndCreateFile("doctor");
-        DatabaseEngine.checkAndCreateFile("patient");
-        DatabaseEngine.checkAndCreateFile("appointment");
-        DatabaseEngine.checkAndCreateFile("bill");
-        DatabaseEngine.checkAndCreateFile("followup");
-        DatabaseEngine.checkAndCreateFile("medicine");
-        DatabaseEngine.checkAndCreateFile("prescription");
+        String[] files = {"doctor", "patient", "appointment", "bill", "followup", "medicine", "prescription"};
+        for (String file : files) {
+            DatabaseEngine.checkAndCreateFile(file);
+        }
         System.out.println("System text database layer online.");
 
-        // Step 2: Initialize UI rendering
+        // Step 5: Start UI
         SwingUtilities.invokeLater(() -> {
             try {
-                // Adopt standard native visual design presets
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
-                HospitalDashboard dashboard = new HospitalDashboard();
-                dashboard.setVisible(true);
+                new Main().setVisible(true);
             } catch (Exception e) {
                 System.err.println("GUI Boot Interruption Error: " + e.getMessage());
             }
