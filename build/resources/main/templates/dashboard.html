@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System (HMS)</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .nav-tabs .nav-link {
+            color: #495057;
+            font-weight: 600;
+            border: none;
+            padding: 12px 20px;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            background-color: transparent;
+            border-bottom-color: #0d6efd;
+        }
+        .table-responsive {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .table thead th {
+            background-color: #f1f3f5;
+            color: #495057;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+    <div class="container-fluid">
+        <span class="navbar-brand d-flex align-items-center">
+            <i class="bi bi-hospital me-2 fs-3"></i>
+            <span>HMS Clinical Portal</span>
+        </span>
+        <button class="navbar-toggler" type="type" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item me-3 text-white">
+                    <span id="userGreeting" class="fw-semibold">Welcome, Doctor</span>
+                </li>
+                <li class="nav-item">
+                    <button onclick="logout()" class="btn btn-outline-light btn-sm fw-semibold px-3 py-1.5 rounded-pill">
+                        <i class="bi bi-box-arrow-right me-1.5"></i>Sign Out
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Container -->
+<div class="container-fluid px-4">
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs nav-fill bg-white border-bottom rounded-top" id="hmsTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#doctors" type="button" role="tab" onclick="switchModule('doctors')">
+                        <i class="bi bi-person-heart me-1.5"></i>Doctors
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab" onclick="switchModule('patients')">
+                        <i class="bi bi-people me-1.5"></i>Patients
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" role="tab" onclick="switchModule('appointments')">
+                        <i class="bi bi-calendar-event me-1.5"></i>Appointments
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="bills-tab" data-bs-toggle="tab" data-bs-target="#bills" type="button" role="tab" onclick="switchModule('bills')">
+                        <i class="bi bi-receipt me-1.5"></i>Bills
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="followups-tab" data-bs-toggle="tab" data-bs-target="#followups" type="button" role="tab" onclick="switchModule('followups')">
+                        <i class="bi bi-journal-check me-1.5"></i>Follow-Ups
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="medicines-tab" data-bs-toggle="tab" data-bs-target="#medicines" type="button" role="tab" onclick="switchModule('medicines')">
+                        <i class="bi bi-capsule me-1.5"></i>Medicine
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="prescriptions-tab" data-bs-toggle="tab" data-bs-target="#prescriptions" type="button" role="tab" onclick="switchModule('prescriptions')">
+                        <i class="bi bi-file-earmark-medical me-1.5"></i>Prescriptions
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Controls and Dynamic Search Bar -->
+            <div class="p-3 bg-light border-bottom d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-primary fw-semibold" onclick="openCreateModal()">
+                        <i class="bi bi-plus-lg me-1.5"></i>Create New
+                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="sortBySelect" class="text-secondary fw-semibold text-nowrap mb-0">Sort By:</label>
+                        <select id="sortBySelect" class="form-select form-select-sm" style="width: auto;" onchange="loadCurrentModule()">
+                            <!-- Managed dynamically by JS based on current tab selection -->
+                        </select>
+                    </div>
+                    <div class="input-group input-group-sm" style="width: 250px;">
+                        <span class="input-group-text bg-white"><i class="bi bi-search text-secondary"></i></span>
+                        <input id="searchInput" type="text" class="form-control" placeholder="Search database..." onkeyup="searchCurrentModule()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Tab Grid -->
+            <div class="tab-content p-4" id="hmsTabContent">
+                <div class="tab-pane fade show active" id="moduleContainer" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle mb-0" id="moduleTable">
+                            <thead class="table-light" id="tableHeader">
+                                <!-- Generated Dynamically -->
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Generated Dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODALS FOR CREATE & EDIT ================= -->
+
+<!-- Doctor Modal -->
+<div class="modal fade" id="doctorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="doctorForm" onsubmit="saveDoctor(event)">
+            <input type="hidden" id="docId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="doctorModalTitle">Add New Doctor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="docName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gender Context</label>
+                        <select class="form-select" id="docGender" required>
+                            <option value="MALE">MALE</option>
+                            <option value="FEMALE">FEMALE</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Age</label>
+                        <input type="number" step="0.1" class="form-control" id="docAge" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Specialization Field</label>
+                        <input type="text" class="form-control" id="docSpec" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contact String</label>
+                        <input type="text" class="form-control" id="docContact" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Patient Modal -->
+<div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="patientForm" onsubmit="savePatient(event)">
+            <input type="hidden" id="pId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="patientModalTitle">Admit New Patient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="pName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gender Context</label>
+                        <select class="form-select" id="pGender" required>
+                            <option value="MALE">MALE</option>
+                            <option value="FEMALE">FEMALE</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Age</label>
+                        <input type="number" step="0.1" class="form-control" id="pAge" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Diagnosed Ailment</label>
+                        <input type="text" class="form-control" id="pAilment" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Appointment Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="appointmentForm" onsubmit="saveAppointment(event)">
+            <input type="hidden" id="apptId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="appointmentModalTitle">Book Appointment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Patient</label>
+                        <select class="form-select" id="apptPatientId" required>
+                            <!-- Thymeleaf dynamic seeding fallback + fetch integration -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Doctor</label>
+                        <select class="form-select" id="apptDoctorId" required>
+                            <!-- Seeding fallback -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Scheduled Date</label>
+                        <input type="text" class="form-control" id="apptDate" placeholder="YYYY-MM-DD" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Time Slot</label>
+                        <input type="text" class="form-control" id="apptTime" placeholder="10:00 AM" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Book Now</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bill Modal -->
+<div class="modal fade" id="billModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="billForm" onsubmit="saveBill(event)">
+            <input type="hidden" id="billId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="billModalTitle">Emit New Bill</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Account Patient</label>
+                        <select class="form-select" id="billPatientId" required>
+                            <!-- Seeding -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Statement Net Balance Due ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="billAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Invoice Account Status</label>
+                        <select class="form-select" id="billStatus" required>
+                            <option value="UNPAID">UNPAID</option>
+                            <option value="PAID">PAID</option>
+                            <option value="OVERDUE">OVERDUE</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Emit Bill</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Follow Up Modal -->
+<div class="modal fade" id="followupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="followupForm" onsubmit="saveFollowUp(event)">
+            <input type="hidden" id="followupId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="followupModalTitle">Plan Follow-Up Schedule</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Return Patient</label>
+                        <select class="form-select" id="followupPatientId" required>
+                            <!-- Seeding -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Scheduled Return Date</label>
+                        <input type="text" class="form-control" id="followupDate" placeholder="YYYY-MM-DD" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Clinical Progress Notes</label>
+                        <textarea class="form-control" id="followupNotes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Schedule</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Medicine Modal -->
+<div class="modal fade" id="medicineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="medicineForm" onsubmit="saveMedicine(event)">
+            <input type="hidden" id="medId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="medicineModalTitle">Add Pharmacy Inventory</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Generic Formula Name</label>
+                        <input type="text" class="form-control" id="medName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Available Batch Stock</label>
+                        <input type="number" class="form-control" id="medStock" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unit Price ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="medPrice" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Prescription Modal -->
+<div class="modal fade" id="prescriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="prescriptionForm" onsubmit="savePrescription(event)">
+            <input type="hidden" id="prescriptionId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="prescriptionModalTitle">Issue Clinical Script</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Appointment Reference</label>
+                        <select class="form-select" id="prescApptId" required>
+                            <!-- Seeding -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Medicine Formulation</label>
+                        <input type="text" class="form-control" id="prescMedicine" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dosage Instructions</label>
+                        <input type="text" class="form-control" id="prescDosage" placeholder="1 tab x 3 times daily" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Issue Script</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SPA UI Logic Script -->
+<script>
+    // 1. Session check redirecting to clean /login if session data missing
+    const user = localStorage.getItem("hms_user");
+    if (!user) {
+        window.location.href = "/login";
+    } else {
+        document.getElementById("userGreeting").textContent = `Welcome, ${user}`;
+    }
+
+    function logout() {
+        localStorage.removeItem("hms_user");
+        window.location.href = "/login";
+    }
+
+    // 2. Tab definitions mapping columns, keys, and sort methods from generic interface
+    let currentModule = "doctors";
+    const sortOptions = {
+        doctors: ["ID", "Name", "Age"],
+        patients: ["ID", "Name", "Age"],
+        appointments: ["ID", "Date"],
+        bills: ["ID", "Amount", "Status"],
+        followups: ["ID", "Date"],
+        medicines: ["ID", "Name", "Stock", "Price"],
+        prescriptions: ["ID", "Medicine"]
+    };
+
+    const tableHeaders = {
+        doctors: ["ID", "Name", "Gender", "Age", "Specialization", "Contact", "Actions"],
+        patients: ["ID", "Name", "Gender", "Age", "Ailment", "Actions"],
+        appointments: ["Appt ID", "Patient Name", "Doctor Name", "Date", "Time", "Actions"],
+        bills: ["Bill ID", "Patient Name", "Amount Due ($)", "Payment Status", "Actions"],
+        followups: ["FollowUp ID", "Patient Name", "Next Visit Date", "Progress Notes", "Actions"],
+        medicines: ["ID", "Medicine Name", "Available Stock", "Price ($)", "Actions"],
+        prescriptions: ["Script ID", "Appointment Ref", "Medicine Details", "Dosage Instructions", "Actions"]
+    };
+
+    // Initialize layout load on page open
+    window.onload = function() {
+        switchModule("doctors");
+    };
+
+    function switchModule(moduleName) {
+        currentModule = moduleName;
+        document.getElementById("searchInput").value = "";
+        
+        // Populate specific sort option selects dynamically
+        const sortSelect = document.getElementById("sortBySelect");
+        sortSelect.innerHTML = "";
+        sortOptions[moduleName].forEach(opt => {
+            const option = document.createElement("option");
+            option.value = opt;
+            option.textContent = opt;
+            sortSelect.appendChild(option);
+        });
+
+        loadCurrentModule();
+    }
+
+    async function loadCurrentModule() {
+        const sortBy = document.getElementById("sortBySelect").value;
+        const searchInput = document.getElementById("searchInput").value.trim();
+        let apiEndpoint = `/api/${currentModule}?sortBy=${sortBy}`;
+        
+        if (searchInput.length > 0) {
+            apiEndpoint = `/api/${currentModule}/search?query=${encodeURIComponent(searchInput)}`;
+        }
+
+        try {
+            const res = await fetch(apiEndpoint);
+            if (!res.ok) throw new Error("Could not retrieve system records.");
+            const data = await res.json();
+            renderTable(data);
+        } catch (error) {
+            console.error("Fetch failure: ", error);
+        }
+    }
+
+    function searchCurrentModule() {
+        // Simple search debounce delay trigger
+        loadCurrentModule();
+    }
+
+    function renderTable(data) {
+        const headerRow = document.getElementById("tableHeader");
+        const bodyRow = document.getElementById("tableBody");
+        
+        headerRow.innerHTML = "";
+        bodyRow.innerHTML = "";
+
+        // Write columns
+        const trHead = document.createElement("tr");
+        tableHeaders[currentModule].forEach(col => {
+            const th = document.createElement("th");
+            th.textContent = col;
+            trHead.appendChild(th);
+        });
+        headerRow.appendChild(trHead);
+
+        if (data.length === 0) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td colspan="${tableHeaders[currentModule].length}" class="text-center text-secondary py-4">No matching records found in this category.</td>`;
+            bodyRow.appendChild(tr);
+            return;
+        }
+
+        // Fill data rows mapping items
+        data.forEach(item => {
+            const tr = document.createElement("tr");
+            let fieldsHtml = "";
+
+            if (currentModule === "doctors") {
+                fieldsHtml = `
+                    <td>${item.id}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span class="badge bg-secondary">${item.gender}</span></td>
+                    <td>${item.age}</td>
+                    <td>${item.specialization}</td>
+                    <td>${item.contact}</td>
+                `;
+            } else if (currentModule === "patients") {
+                fieldsHtml = `
+                    <td>${item.id}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td><span class="badge bg-secondary">${item.gender}</span></td>
+                    <td>${item.age}</td>
+                    <td>${item.ailment}</td>
+                `;
+            } else if (currentModule === "appointments") {
+                fieldsHtml = `
+                    <td>${item.id}</td>
+                    <td>${item.patientName}</td>
+                    <td>Dr. ${item.doctorName}</td>
+                    <td>${item.date}</td>
+                    <td>${item.time}</td>
+                `;
+            } else if (currentModule === "bills") {
+                let badgeClass = "bg-warning text-dark";
+                if (item.status === "PAID") badgeClass = "bg-success";
+                if (item.status === "OVERDUE") badgeClass = "bg-danger";
+
+                fieldsHtml = `
+                    <td>${item.id}</td>
+                    <td>${item.patientName}</td>
+                    <td>$${item.amount.toFixed(2)}</td>
+                    <td><span class="badge ${badgeClass}">${item.status}</span></td>
+                `;
+            } else if (currentModule === "followups") {
+                fieldsHtml = `
+                    <td>${item.id}</td>
+                    <td>${item.patientName}</td>
+                    <td>${item.nextDate}</td>
+                    <td>${item.notes || "<em>No notes provided.</em>"}</td>
+                `;
+            } else if (currentModule === "medicines") {
+                fieldsHtml = `
+                    <td>${item.id}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.stock}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                `;
+            } else if (currentModule === "prescriptions") {
+                fieldsHtml = `
+                    <td>${item.id}</td>
+                    <td>${item.appointmentRef}</td>
+                    <td>${item.medicineDetails}</td>
+                    <td>${item.dosage}</td>
+                `;
+            }
+
+            // Append standard dynamic edit and delete row configurations
+            fieldsHtml += `
+                <td>
+                    <button class="btn btn-outline-primary btn-action btn-sm me-1" onclick="openEditModal(${item.id})">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-action btn-sm" onclick="deleteRecord(${item.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+
+            tr.innerHTML = fieldsHtml;
+            bodyRow.appendChild(tr);
+        });
+    }
+
+    // 3. Modals Loading Mappings for Entity creation/updating
+    async function populateDropdown(selectId, endpoint, mapper) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">-- Choose Option --</option>';
+        try {
+            const res = await fetch(endpoint);
+            if (res.ok) {
+                const list = await res.json();
+                list.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id;
+                    opt.textContent = mapper(item);
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error("Dropdown load failure on " + endpoint, e);
+        }
+    }
+
+    async function prepareModalDropdowns() {
+        if (currentModule === "appointments") {
+            await populateDropdown("apptPatientId", "/api/patients", p => `${p.name} (ID: ${p.id})`);
+            await populateDropdown("apptDoctorId", "/api/doctors", d => `${d.name} - ${d.specialization} (ID: ${d.id})`);
+        } else if (currentModule === "bills") {
+            await populateDropdown("billPatientId", "/api/patients", p => `${p.name} (ID: ${p.id})`);
+        } else if (currentModule === "followups") {
+            await populateDropdown("followupPatientId", "/api/patients", p => `${p.name} (ID: ${p.id})`);
+        } else if (currentModule === "prescriptions") {
+            await populateDropdown("prescApptId", "/api/appointments", a => `ID: ${a.id} - Patient: ${a.patientName} on ${a.date}`);
+        }
+    }
+
+    async function openCreateModal() {
+        await prepareModalDropdowns();
+
+        if (currentModule === "doctors") {
+            document.getElementById("doctorForm").reset();
+            document.getElementById("docId").value = "";
+            document.getElementById("doctorModalTitle").textContent = "Add New Doctor";
+            new bootstrap.Modal(document.getElementById("doctorModal")).show();
+        } else if (currentModule === "patients") {
+            document.getElementById("patientForm").reset();
+            document.getElementById("pId").value = "";
+            document.getElementById("patientModalTitle").textContent = "Admit New Patient";
+            new bootstrap.Modal(document.getElementById("patientModal")).show();
+        } else if (currentModule === "appointments") {
+            document.getElementById("appointmentForm").reset();
+            document.getElementById("apptId").value = "";
+            document.getElementById("apptDate").value = "2026-06-01";
+            document.getElementById("apptTime").value = "10:00 AM";
+            document.getElementById("appointmentModalTitle").textContent = "Book Appointment";
+            new bootstrap.Modal(document.getElementById("appointmentModal")).show();
+        } else if (currentModule === "bills") {
+            document.getElementById("billForm").reset();
+            document.getElementById("billId").value = "";
+            document.getElementById("billStatus").value = "UNPAID";
+            document.getElementById("billModalTitle").textContent = "Emit New Bill";
+            new bootstrap.Modal(document.getElementById("billModal")).show();
+        } else if (currentModule === "followups") {
+            document.getElementById("followupForm").reset();
+            document.getElementById("followupId").value = "";
+            document.getElementById("followupDate").value = "2026-06-15";
+            document.getElementById("followupModalTitle").textContent = "Plan Follow-Up Schedule";
+            new bootstrap.Modal(document.getElementById("followupModal")).show();
+        } else if (currentModule === "medicines") {
+            document.getElementById("medicineForm").reset();
+            document.getElementById("medId").value = "";
+            document.getElementById("medicineModalTitle").textContent = "Add Pharmacy Inventory";
+            new bootstrap.Modal(document.getElementById("medicineModal")).show();
+        } else if (currentModule === "prescriptions") {
+            document.getElementById("prescriptionForm").reset();
+            document.getElementById("prescriptionId").value = "";
+            document.getElementById("prescDosage").value = "1 tab x 3 times daily";
+            document.getElementById("prescriptionModalTitle").textContent = "Issue Clinical Script";
+            new bootstrap.Modal(document.getElementById("prescriptionModal")).show();
+        }
+    }
+
+    async function openEditModal(id) {
+        await prepareModalDropdowns();
+
+        try {
+            const res = await fetch(`/api/${currentModule}/${id}`);
+            if (!res.ok) throw new Error("Fetch item details failed.");
+            const item = await res.json();
+
+            if (currentModule === "doctors") {
+                document.getElementById("docId").value = item.id;
+                document.getElementById("docName").value = item.name;
+                document.getElementById("docGender").value = item.gender;
+                document.getElementById("docAge").value = item.age;
+                document.getElementById("docSpec").value = item.specialization;
+                document.getElementById("docContact").value = item.contact;
+                document.getElementById("doctorModalTitle").textContent = `Modify Doctor ID: ${item.id}`;
+                new bootstrap.Modal(document.getElementById("doctorModal")).show();
+            } else if (currentModule === "patients") {
+                document.getElementById("pId").value = item.id;
+                document.getElementById("pName").value = item.name;
+                document.getElementById("pGender").value = item.gender;
+                document.getElementById("pAge").value = item.age;
+                document.getElementById("pAilment").value = item.ailment;
+                document.getElementById("patientModalTitle").textContent = `Modify Patient ID: ${item.id}`;
+                new bootstrap.Modal(document.getElementById("patientModal")).show();
+            } else if (currentModule === "appointments") {
+                document.getElementById("apptId").value = item.id;
+                document.getElementById("apptPatientId").value = item.patientId;
+                document.getElementById("apptDoctorId").value = item.doctorId;
+                document.getElementById("apptDate").value = item.date;
+                document.getElementById("apptTime").value = item.time;
+                document.getElementById("appointmentModalTitle").textContent = `Edit Appointment ID: ${item.id}`;
+                new bootstrap.Modal(document.getElementById("appointmentModal")).show();
+            } else if (currentModule === "bills") {
+                document.getElementById("billId").value = item.id;
+                document.getElementById("billPatientId").value = item.patientId;
+                document.getElementById("billAmount").value = item.amount;
+                document.getElementById("billStatus").value = item.status;
+                document.getElementById("billModalTitle").textContent = `Modify Invoice Statement ID: ${item.id}`;
+                new bootstrap.Modal(document.getElementById("billModal")).show();
+            } else if (currentModule === "followups") {
+                document.getElementById("followupId").value = item.id;
+                document.getElementById("followupPatientId").value = item.patientId;
+                document.getElementById("followupDate").value = item.nextDate;
+                document.getElementById("followupNotes").value = item.notes;
+                document.getElementById("followupModalTitle").textContent = `Modify Follow-Up Tracking Entry ID: ${item.id}`;
+                new bootstrap.Modal(document.getElementById("followupModal")).show();
+            } else if (currentModule === "medicines") {
+                document.getElementById("medId").value = item.id;
+                document.getElementById("medName").value = item.name;
+                document.getElementById("medStock").value = item.stock;
+                document.getElementById("medPrice").value = item.price;
+                document.getElementById("medicineModalTitle").textContent = `Modify Inventory Entry ID: ${item.id}`;
+                new bootstrap.Modal(document.getElementById("medicineModal")).show();
+            } else if (currentModule === "prescriptions") {
+                document.getElementById("prescriptionId").value = item.id;
+                document.getElementById("prescApptId").value = item.appointmentId;
+                document.getElementById("prescMedicine").value = item.medicineDetails;
+                document.getElementById("prescDosage").value = item.dosage;
+                document.getElementById("prescriptionModalTitle").textContent = `Modify Script ID: ${item.id}`;
+                new bootstrap.Modal(document.getElementById("prescriptionModal")).show();
+            }
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    }
+
+    // 4. Modal Submit Actions
+    async function saveFormSubmit(url, method, bodyObj, modalId) {
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bodyObj)
+            });
+            if (!res.ok) throw new Error("Data submission transaction rejected.");
+            
+            // Close modal safely on success
+            const modalEl = document.getElementById(modalId);
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+
+            loadCurrentModule();
+        } catch (e) {
+            alert("Submission error: " + e.message);
+        }
+    }
+
+    function saveDoctor(e) {
+        e.preventDefault();
+        const id = document.getElementById("docId").value;
+        const body = {
+            id: id ? parseInt(id) : null,
+            name: document.getElementById("docName").value.trim(),
+            gender: document.getElementById("docGender").value,
+            age: parseFloat(document.getElementById("docAge").value),
+            specialization: document.getElementById("docSpec").value.trim(),
+            contact: document.getElementById("docContact").value.trim()
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/doctors/${id}` : "/api/doctors";
+        saveFormSubmit(url, method, body, "doctorModal");
+    }
+
+    function savePatient(e) {
+        e.preventDefault();
+        const id = document.getElementById("pId").value;
+        const body = {
+            id: id ? parseInt(id) : null,
+            name: document.getElementById("pName").value.trim(),
+            gender: document.getElementById("pGender").value,
+            age: parseFloat(document.getElementById("pAge").value),
+            ailment: document.getElementById("pAilment").value.trim()
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/patients/${id}` : "/api/patients";
+        saveFormSubmit(url, method, body, "patientModal");
+    }
+
+    function saveAppointment(e) {
+        e.preventDefault();
+        const id = document.getElementById("apptId").value;
+        const body = {
+            id: id ? parseInt(id) : null,
+            patientId: parseInt(document.getElementById("apptPatientId").value),
+            doctorId: parseInt(document.getElementById("apptDoctorId").value),
+            date: document.getElementById("apptDate").value.trim(),
+            time: document.getElementById("apptTime").value.trim()
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/appointments/${id}` : "/api/appointments";
+        saveFormSubmit(url, method, body, "appointmentModal");
+    }
+
+    function saveBill(e) {
+        e.preventDefault();
+        const id = document.getElementById("billId").value;
+        const body = {
+            id: id ? parseInt(id) : null,
+            patientId: parseInt(document.getElementById("billPatientId").value),
+            amount: parseFloat(document.getElementById("billAmount").value),
+            status: document.getElementById("billStatus").value
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/bills/${id}` : "/api/bills";
+        saveFormSubmit(url, method, body, "billModal");
+    }
+
+    function saveFollowUp(e) {
+        e.preventDefault();
+        const id = document.getElementById("followupId").value;
+        const body = {
+            id: id ? parseInt(id) : null,
+            patientId: parseInt(document.getElementById("followupPatientId").value),
+            nextDate: document.getElementById("followupDate").value.trim(),
+            notes: document.getElementById("followupNotes").value.trim()
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/followups/${id}` : "/api/followups";
+        saveFormSubmit(url, method, body, "followupModal");
+    }
+
+    function saveMedicine(e) {
+        e.preventDefault();
+        const id = document.getElementById("medId").value;
+        const body = {
+            id: id ? parseInt(id) : null,
+            name: document.getElementById("medName").value.trim(),
+            stock: parseInt(document.getElementById("medStock").value),
+            price: parseFloat(document.getElementById("medPrice").value)
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/medicines/${id}` : "/api/medicines";
+        saveFormSubmit(url, method, body, "medicineModal");
+    }
+
+    function savePrescription(e) {
+        e.preventDefault();
+        const id = document.getElementById("prescriptionId").value;
+        const body = {
+            id: id ? parseInt(id) : null,
+            appointmentId: parseInt(document.getElementById("prescApptId").value),
+            medicineDetails: document.getElementById("prescMedicine").value.trim(),
+            dosage: document.getElementById("prescDosage").value.trim()
+        };
+        const method = id ? "PUT" : "POST";
+        const url = id ? `/api/prescriptions/${id}` : "/api/prescriptions";
+        saveFormSubmit(url, method, body, "prescriptionModal");
+    }
+
+    // 5. Deletion Routine
+    async function deleteRecord(id) {
+        const confirmResult = confirm(`Are you sure you want to permanently delete record ID: ${id}?`);
+        if (confirmResult) {
+            try {
+                const res = await fetch(`/api/${currentModule}/${id}`, {
+                    method: "DELETE"
+                });
+                if (!res.ok) throw new Error("Deletion request declined by server.");
+                loadCurrentModule();
+            } catch (e) {
+                alert("Deletion Error: " + e.message);
+            }
+        }
+    }
+</script>
+</body>
+</html>
